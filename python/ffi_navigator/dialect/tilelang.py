@@ -16,6 +16,10 @@ class TilelangProvider(TVMProvider):
         if reg.endswith("relay_node")
         else pattern.Ref(key=key, path=path, range=rg))
 
+    self.py_init_api = pattern.macro_matcher(
+        ["tvm.ffi._init_api", "_init_api", "tvm_ffi.init_ffi_api", "init_ffi_api"],
+        lambda key, path, _, reg: self._wrap_py_init_api(key, path, reg))
+
     self.tl_cc_def_op = pattern.re_matcher(
         r"(?P<macro_name>(TIR_REGISTER_TL_OP))\((?P<key>[^,]+)\)?",
         lambda match, path, rg:
