@@ -1,6 +1,7 @@
 """Namespace for FFI export dialects"""
 import os
 from .tvm import TVMProvider
+from .tilelang import TilelangProvider
 from .dgl import DGLProvider
 from .mxnet import MXNetProvider
 from .torch import TorchProvider
@@ -36,4 +37,6 @@ def autodetect_dialects(root_path, resolver, logger):
         dialects.append(DGLProvider(resolver, logger))
     elif os.path.exists(os.path.join(root_path, "python", "taichi")):
         dialects.append(TaichiProvider(resolver, logger))
+    elif os.path.exists(os.path.join(root_path, "tilelang")):
+        dialects.append(TilelangProvider(resolver, logger))
     return dialects
