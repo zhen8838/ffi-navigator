@@ -21,7 +21,7 @@ class TilelangProvider(TVMProvider):
         lambda key, path, _, reg: self._wrap_py_init_api(key, path, reg))
 
     self.tl_cc_def_op = pattern.re_matcher(
-        r"(?P<macro_name>(TIR_REGISTER_TL_OP))\((?P<key>[^,]+)\)?",
+        r"(?P<macro_name>(TIR_REGISTER_TL_OP|TIR_REGISTER_TL_TILE_OP))\((?P<key>[^,]+)\)?",
         lambda match, path, rg:
         pattern.Def(key="tl." + match.group("key"), path=path, range=rg))
 
@@ -43,3 +43,17 @@ class TilelangProvider(TVMProvider):
       self.logger.info("%s: found python path %s", self.dialect_name, self._pypath_root)
       # self._pypath_funcmod = os.path.join(self._pypath_root, "_ffi", "function")
       # self._pypath_api_internal = os.path.join(self._pypath_root, "_api_internal")
+
+  def _wrap_py_init_api(self, key, path, reg):
+      if reg != "tvm.ffi._init_api" and reg != "tvm_ffi.init_ffi_api":
+          # legacy behavior
+          new_mod, new_name = self.resolver.resolve(path, "_init_api")
+          if new_mod != self._pypath_funcmod or new_name != "_init_api":
+              return None
+      prefix = key[4:] if key.startswith("tvm.") else key
+      fkey2var = lambda k : k[len(prefix) + 1:]
+      fvar2key = lambda v : prefix + "." + v
+
+      return pattern.Export(key_prefix=prefix, path=path,
+                            fvar2key=fvar2key,
+                            fkey2var=fkey2var)
